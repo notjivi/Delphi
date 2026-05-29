@@ -293,22 +293,71 @@ export default function DelphiDashboard() {
 
               {/* Data Sources Grid */}
               <div className="grid grid-cols-2 gap-4 flex-1">
+                {/* Polymarket Segment */}
                 <div className="border border-green-900 p-4 bg-black/40 flex flex-col">
                   <h3 className="text-xs text-green-700 tracking-widest mb-4">POLYMARKET DATA</h3>
                   <div className="flex flex-col gap-4">
                     <div>
-                      <span className="text-[10px] text-green-700 block mb-1">IMPLIED ODDS</span>
-                      <span className="text-2xl text-green-300">{activeSignal.marketData.predictionOdds}%</span>
+                      <span className="text-[10px] text-green-700 block mb-1">PREDICTION ODDS</span>
+                      <p className="text-2xl text-green-400 font-bold">{activeSignal?.marketData?.predictionOdds || 0}%</p>
                     </div>
                     <div>
                       <span className="text-[10px] text-green-700 block mb-1">VOLUME TRANSACTED</span>
-                      <span className="text-lg text-green-500">{activeSignal.marketData.volume}</span>
+                      <span className="text-lg text-green-500">{activeSignal?.marketData?.volume || "$0.00"}</span>
                     </div>
                   </div>
                 </div>
 
+                {/* Reuters & Telemetry Segment */}
                 <div className="border border-green-900 p-4 bg-black/40 flex flex-col">
                   <h3 className="text-xs text-green-700 tracking-widest mb-4">WIRE & TELEMETRY</h3>
                   <div className="flex flex-col gap-4 overflow-y-auto pr-2">
                     <div>
-                      <span className="text-[10px] text-green-700 block mb-1">
+                      <span className="text-[10px] text-green-700 block mb-1">REUTERS FEED</span>
+                      <p className="text-xs italic text-green-400">
+                        {/* 🚀 THIS IS THE FIX THAT PREVENTS THE BUILD ERROR 🚀 */}
+                        {activeSignal?.newsData?.headline ? `"${activeSignal.newsData.headline}"` : "Awaiting wire signals..."}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-green-700 block mb-1">MOMENTUM & RETAIL</span>
+                      <p className="text-sm text-green-500">{activeSignal?.newsData?.telemetry || "Flat / Stable"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* RIGHT COLUMN: Signal History */}
+        <div className="md:col-span-3 flex flex-col gap-6 min-h-0">
+          <div className="border border-green-900 p-4 bg-black/40 flex-1 flex flex-col min-h-0">
+            <h3 className="text-xs text-green-700 tracking-widest mb-4">ARCHIVED SIGNALS</h3>
+            <div className="flex flex-col gap-3 overflow-y-auto pr-2">
+              {memoryCache.length === 0 ? (
+                <span className="text-[10px] text-green-700">No sweeps archived yet.</span>
+              ) : (
+                memoryCache.map((sig, i) => (
+                  <div key={i} className="border border-green-900/50 p-3 flex flex-col gap-2 text-xs">
+                    <div className="flex justify-between items-center text-green-600">
+                      <span>{sig.topic}</span>
+                      <span className={getStatusColor(sig.analysis.status)}>{sig.analysis.status}</span>
+                    </div>
+                    <div className="flex justify-between text-[10px]">
+                      <span>MDI: {sig.analysis.discrepancyIndex}/100</span>
+                      <span className="text-green-800">
+                        {new Date(sig.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
