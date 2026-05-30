@@ -28,6 +28,7 @@ interface SignalPayload {
   marketData: MarketData;
   newsData: NewsData;
   analysis: AnalysisData;
+  error?: string;
 }
 
 export default function DelphiDashboard() {
@@ -49,6 +50,31 @@ export default function DelphiDashboard() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const logsEndRef = useRef<HTMLDivElement | null>(null);
+  const bgSweepsRef = useRef(0); // Tracks background sweeps
+
+  // --- LOCAL STORAGE PERSISTENCE ---
+  // 1. Load archives from localStorage on initial boot
+  useEffect(() => {
+    const savedCache = localStorage.getItem("delphi_archive_cache");
+    if (savedCache) {
+      try {
+        const parsed = JSON.parse(savedCache);
+        if (parsed && parsed.length > 0) {
+          setMemoryCache(parsed);
+          setActiveSignal(parsed[0]); // Boot up showing the last saved signal
+        }
+      } catch (e) {
+        console.error("Failed to parse archive cache", e);
+      }
+    }
+  }, []);
+
+  // 2. Automatically save to localStorage whenever memoryCache updates
+  useEffect(() => {
+    if (memoryCache.length > 0) {
+      localStorage.setItem("delphi_archive_cache", JSON.stringify(memoryCache));
+    }
+  }, [memoryCache]);
 
   // Auto-scroll terminal
   useEffect(() => {
@@ -76,7 +102,11 @@ export default function DelphiDashboard() {
       if (data.error) throw new Error(data.error);
 
       setActiveSignal(data);
-      setMemoryCache((prev) => [data, ...prev].slice(0, 10)); // Keep last 10 in cache
+      setMemoryCache((prev) => {
+        // Keep the newest data at the top, max 15 items in history
+        const newCache = [data, ...prev].slice(0, 15);
+        return newCache;
+      });
       
       addLog(`[SYS] Scan complete for "${topic}". Discrepancy Index: ${data.analysis?.discrepancyIndex || 0}/100.`);
     } catch (err: any) {
@@ -98,11 +128,25 @@ export default function DelphiDashboard() {
     stopAgentTimers();
     setCountdown(60);
 
+    // Visual countdown ticker
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => (prev <= 1 ? 60 : prev - 1));
     }, 1000);
 
+    // Main 60s Agent Loop
     intervalRef.current = setInterval(() => {
+      // Background limit logic: Halt after 3 sweeps while hidden
+      if (document.hidden) {
+        bgSweepsRef.current += 1;
+        if (bgSweepsRef.current >= 3) {
+          setIsAgentEngaged(false); // Turn off agent
+          addLog("[SYS] Agent auto-hibernated after 3 background sweeps to conserve resources.");
+          return; // Skip this sweep
+        }
+      } else {
+        bgSweepsRef.current = 0; // Reset counter if tab is active
+      }
+
       setCurrentTopicIndex((prevIndex) => {
         const nextIndex = (prevIndex + 1) % watchlist.length;
         triggerSignalAnalysis(watchlist[nextIndex]);
@@ -111,7 +155,7 @@ export default function DelphiDashboard() {
     }, 60000);
   };
 
-  // --- Lifecycle & Visibility Kill Switch ---
+  // --- Lifecycle Trigger ---
   useEffect(() => {
     if (!isAgentEngaged) {
       stopAgentTimers();
@@ -119,29 +163,29 @@ export default function DelphiDashboard() {
       return;
     }
 
+    bgSweepsRef.current = 0; // Reset BG sweeps on engage
     addLog("[SYS] Autonomous Agent Mode ENGAGED. Commencing sweep...");
     triggerSignalAnalysis(watchlist[currentTopicIndex]);
     startAgentTimers();
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        stopAgentTimers();
-        addLog("[SYS] Tab inactive. Hibernating agent to conserve API tranches.");
-      } else {
-        addLog("[SYS] Tab focused. Re-awakening agent loops...");
-        // Re-fire immediately on wake, then restart timers
-        triggerSignalAnalysis(watchlist[currentTopicIndex]);
-        startAgentTimers();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      stopAgentTimers();
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAgentEngaged]);
+
+  // --- Manual Watchlist Click Handler ---
+  const handleWatchlistClick = (index: number, topic: string) => {
+    setCurrentTopicIndex(index);
+    addLog(`[USER] Manual focus shifted to target: "${topic}"`);
+    triggerSignalAnalysis(topic);
+    
+    if (isAgentEngaged) {
+      startAgentTimers();
+    }
+  };
+
+  // --- Archive Click Handler ---
+  const handleArchiveClick = (sig: SignalPayload) => {
+    setActiveSignal(sig);
+    addLog(`[USER] Accessed archive memory for: "${sig.topic}" [MDI: ${sig.analysis.discrepancyIndex}]`);
+  };
 
   // --- Manual Override Handler ---
   const handleManualOverride = (e: React.FormEvent) => {
@@ -224,8 +268,9 @@ export default function DelphiDashboard() {
               {watchlist.map((item, idx) => (
                 <div 
                   key={item} 
-                  className={`p-2 text-sm border flex justify-between items-center transition-colors ${
-                    isAgentEngaged && idx === currentTopicIndex 
+                  onClick={() => handleWatchlistClick(idx, item)}
+                  className={`p-2 text-sm border flex justify-between items-center transition-colors cursor-pointer hover:bg-green-900/20 hover:border-green-700 ${
+                    idx === currentTopicIndex 
                       ? "border-green-500 bg-green-950/30 text-green-300" 
                       : "border-green-900/50 text-green-700"
                   }`}
@@ -315,7 +360,6 @@ export default function DelphiDashboard() {
                     <div>
                       <span className="text-[10px] text-green-700 block mb-1">REUTERS FEED</span>
                       <p className="text-xs italic text-green-400">
-                        {/* 🚀 THIS IS THE FIX THAT PREVENTS THE BUILD ERROR 🚀 */}
                         {activeSignal?.newsData?.headline ? `"${activeSignal.newsData.headline}"` : "Awaiting wire signals..."}
                       </p>
                     </div>
@@ -339,7 +383,11 @@ export default function DelphiDashboard() {
                 <span className="text-[10px] text-green-700">No sweeps archived yet.</span>
               ) : (
                 memoryCache.map((sig, i) => (
-                  <div key={i} className="border border-green-900/50 p-3 flex flex-col gap-2 text-xs">
+                  <div 
+                    key={i} 
+                    onClick={() => handleArchiveClick(sig)}
+                    className="border border-green-900/50 p-3 flex flex-col gap-2 text-xs cursor-pointer hover:bg-green-900/20 hover:border-green-700 transition-colors"
+                  >
                     <div className="flex justify-between items-center text-green-600">
                       <span>{sig.topic}</span>
                       <span className={getStatusColor(sig.analysis.status)}>{sig.analysis.status}</span>

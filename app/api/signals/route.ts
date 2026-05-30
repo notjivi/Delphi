@@ -13,28 +13,35 @@ export async function POST(req: Request) {
     }
 
     // ============================================================================
-    // 1. ANAKIN WIRE ORCHESTRATION (DATA GATHERING LAYER)
+    // 1. DYNAMIC TELEMETRY SIMULATION MATRIX (DATA GATHERING LAYER)
     // ============================================================================
     // In a full enterprise deployment, this is where you await your Anakin Wire webhooks.
     // To ensure the Vercel serverless function doesn't timeout during the hackathon demo,
-    // we simulate the structured telemetry payload that Anakin provides to the AI.
-    
-    const telemetryData = {
-      polymarket: {
-        odds: topic.toLowerCase().includes('bitcoin') ? 81 : 42,
-        volume: "$10.4M",
-        trend: "Spiking rapidly in last 15 minutes"
-      },
-      reuters: {
-        headline: topic.toLowerCase().includes('bitcoin') ? "EU lawmakers debate new crypto regulations" : "Markets remain cautious ahead of data",
-        sentiment: "Neutral/Bearish"
-      },
-      telemetry: {
-        coingecko_momentum: "Flat",
-        cboe_vix: "Stable at 13.2",
-        google_trends: "No significant breakout"
-      }
-    };
+    // we simulate distinct scenarios that Anakin provides based on the selected asset.
+    let telemetryData;
+
+    if (topic.toLowerCase().includes('bitcoin')) {
+      // SCENARIO A: High Divergence / Alpha Signal (The Money Shot)
+      telemetryData = {
+        polymarket: { odds: 84, volume: "$14.2M", trend: "Violent upward surge in last 12 mins" },
+        reuters: { headline: "EU regulators schedule quiet closed-door digital asset briefing", sentiment: "Neutral" },
+        telemetry: { coingecko_momentum: "Flat", cboe_vix: "Stable at 12.8", google_trends: "Baseline" }
+      };
+    } else if (topic.toLowerCase().includes('cut')) {
+      // SCENARIO B: Moderate Observation / Watching
+      telemetryData = {
+        polymarket: { odds: 52, volume: "$8.1M", trend: "Slowly drifting within weekly range" },
+        reuters: { headline: "Fed officials signal data-dependent approach to upcoming rate cycle", sentiment: "Neutral" },
+        telemetry: { coingecko_momentum: "N/A", cboe_vix: "13.4", google_trends: "Normal retail interest" }
+      };
+    } else {
+      // SCENARIO C: Perfectly Efficient, Stable Market
+      telemetryData = {
+        polymarket: { odds: 14, volume: "$1.2M", trend: "Stagnant/Decaying volume" },
+        reuters: { headline: "Mainstream political polls hold steady through weekend sessions", sentiment: "Stable" },
+        telemetry: { coingecko_momentum: "Flat", cboe_vix: "13.1", google_trends: "Flat" }
+      };
+    }
 
     // ============================================================================
     // 2. GEMINI CONSENSUS ENGINE (ANALYSIS LAYER)
