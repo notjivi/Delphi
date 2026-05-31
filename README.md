@@ -1,7 +1,4 @@
-**Here's your final, polished, and complete README.md** — ready to copy-paste.
-
-
-# 🟢 DELPHI // Autonomous Asymmetric Information Terminal
+# DELPHI: Autonomous Asymmetric Information Terminal
 
 **Built for the Anakin Build-a-thon 2026**
 
@@ -12,10 +9,6 @@ Traditional market tools wait for the news to break. By the time a headline is p
 Instead of relying on a single lagging indicator, Delphi concurrently polls live order-book probabilities, cross-examines them against breaking news wires, and injects live market telemetry to calculate a tradeable **Market Discrepancy Index (MDI)**.
 
 ---
-
-## 🔥 The Wow Factor: Real Alpha Edge
-
-**Most tools give you data. Delphi gives you a quantified edge.**
 
 ### Market Discrepancy Index (MDI)
 
@@ -39,7 +32,7 @@ $$ MDI = (0.45 \times \text{Conviction Divergence}) + (0.25 \times \text{Narrati
 
 ---
 
-## 🏗️ The Multi-Node Architecture
+## The Multi-Node Architecture
 
 Delphi orchestrates a coordinated intelligence matrix using **Anakin Wire** + **Gemini 2.5 Flash**:
 
@@ -49,6 +42,9 @@ Delphi orchestrates a coordinated intelligence matrix using **Anakin Wire** + **
    - **CoinGecko** — Live spot price and volume momentum (crypto)
    - **CBOE VIX** — Macro volatility and fear gauge
    - **Google Trends** — Retail attention spikes
+
+<img width="1473" height="727" alt="image" src="https://github.com/user-attachments/assets/c2159a35-6e91-40a2-a614-3950fcb858c1" />
+
 
 When these realities diverge significantly, Delphi flags high-conviction opportunities before the market corrects.
 
@@ -61,13 +57,15 @@ When these realities diverge significantly, Delphi flags high-conviction opportu
 - **Production Guardrails** — `visibilitychange` kill-switch automatically pauses polling when tab loses focus (saves API costs)
 - **Local Fallback Engine** — Continues working with pure math calculations if AI APIs timeout
 - **Institutional-Grade UI** — Dense Bloomberg Terminal-style interface built with Tailwind CSS
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/b6735321-dd0a-45e4-b23b-1b19a42f40c7" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/c1ae5786-23a7-494c-b839-d9a4657e7439" />
 
 ---
 
-## 🚀 Local Development
+## Local Development
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/notjivi/Delphi
 cd delphi
 npm install
 ```
@@ -89,7 +87,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
 - **Styling**: Tailwind CSS
@@ -99,22 +97,10 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## ⚖️ License
+## License
 
 MIT License — Feel free to fork and build upon this architecture.
 
 ---
 
 **Made in 48 hours for the Anakin Build-a-thon.**
-```
-
----
-
-### Quick Tips Before Submitting:
-- Replace `<your-repo-url>` with your actual GitHub link.
-- Add 2–3 screenshots (especially one with a high MDI score) right after the "Wow Factor" section for maximum impact.
-- If you have a live Vercel deployment, add a **Live Demo** link at the top.
-
-This version now has strong technical depth, clear uniqueness, and professional polish — exactly what judges look for when there are 200 participants.
-
-Would you like me to also write a **strong submission description** (for the hackathon form) to go along with this?
